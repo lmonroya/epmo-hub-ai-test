@@ -71,6 +71,19 @@ h3 { font-size: 13.5px; margin: 16px 0 6px; color: var(--navy); }
 
 #meta-line { margin-bottom: 14px; }
 
+.research-box {
+  background: var(--navy-soft); border: 1px solid var(--border); border-radius: 10px;
+  padding: 14px 16px; margin-bottom: 16px;
+}
+.research-box h4 { font-size: 11.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--navy); margin: 0 0 8px; }
+.research-box p { font-size: 12.5px; color: var(--ink-soft); white-space: pre-wrap; margin: 0; }
+.query-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.query-chip {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 99px;
+  padding: 3px 10px; font-size: 11px; color: var(--ink-soft);
+}
+.research-error { color: var(--critical); font-weight: 600; }
+
 .results-body.side { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 .results-col h4 { font-size: 11.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-faint); margin: 0 0 8px; }
 

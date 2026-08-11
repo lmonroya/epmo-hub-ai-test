@@ -17,6 +17,16 @@ const SAMPLES = {
         "Migrate core banking ledger and transaction processing from the legacy mainframe to a modern cloud-native platform without disrupting daily branch operations.",
       dod:
         "Legacy mainframe fully decommissioned; 100% of transaction volume processed on the new platform for 60 consecutive days with zero critical incidents.",
+      teamCapacity:
+        "Architecture Guild, Integration Pod, and InfoSec are the primary internal teams; branch training relies on 12 regional ops managers; D. Alvarez is program lead.",
+      decisionMakers: "M. Reyes, COO (Executive Sponsor); Steering Committee (monthly go/no-go on cutover gates)",
+      influencers: "Core Platform Vendor Account Exec (delivery pod allocation); Head of Retail Banking Ops (branch rollout sequencing)",
+      blockers: "Federal Reserve Examiner — regulatory approval gate before cutover; examiner has not yet confirmed audit logging scope.",
+      supporters: "12 regional branch ops managers coordinating local training.",
+      constraints:
+        "Regulatory sign-off requires a full 60-day clean parallel run with zero exceptions before the legacy mainframe can be decommissioned; cutover cannot move earlier than Dec 2026.",
+      anythingElse:
+        "Core platform vendor was previously over-allocated across three concurrent client migrations, causing a 3-week Phase 2 slip; a dedicated vendor delivery pod was escalated into place in Q3.",
     },
     mockupOutput: {
       phases: [
@@ -69,6 +79,16 @@ const SAMPLES = {
         "Establish a direct-to-consumer retail presence in Singapore and Malaysia as a beachhead for broader APAC expansion.",
       dod:
         "Three flagship stores open and operating at 80% or more of first-year sales targets by the end of Q4 2027.",
+      teamCapacity:
+        "S. Okafor leads the program; Legal, a third-party Build Partner for store fit-out, Regional HR, and Regional Marketing are the supporting teams.",
+      decisionMakers: "A. Lindqvist, CEO (Executive Sponsor)",
+      influencers: "Regional Marketing Director (launch campaign sequencing)",
+      blockers: "Malaysia Ministry of Domestic Trade — retail operating license application still pending regulator review (Owner: Legal).",
+      supporters: "Singapore & Kuala Lumpur store teams handling local market execution.",
+      constraints:
+        "Malaysia requires a locally incorporated entity with a resident director before any retail operating license can be issued; marketing spend is held until stores are ready.",
+      anythingElse:
+        "A local Singapore competitor announced an aggressive pricing campaign in the Orchard Road corridor ahead of launch; launch pricing was adjusted for the first 90 days in response.",
     },
     mockupOutput: {
       phases: [
@@ -136,6 +156,13 @@ function applySample(key) {
   $("f-budget").value = intake.budget;
   $("f-objective").value = intake.objective;
   $("f-dod").value = intake.dod;
+  $("f-team-capacity").value = intake.teamCapacity || "";
+  $("f-decision-makers").value = intake.decisionMakers || "";
+  $("f-influencers").value = intake.influencers || "";
+  $("f-blockers").value = intake.blockers || "";
+  $("f-supporters").value = intake.supporters || "";
+  $("f-constraints").value = intake.constraints || "";
+  $("f-anything-else").value = intake.anythingElse || "";
 }
 
 function readIntake() {
@@ -149,6 +176,13 @@ function readIntake() {
     budget: $("f-budget").value,
     objective: $("f-objective").value,
     dod: $("f-dod").value,
+    teamCapacity: $("f-team-capacity").value,
+    decisionMakers: $("f-decision-makers").value,
+    influencers: $("f-influencers").value,
+    blockers: $("f-blockers").value,
+    supporters: $("f-supporters").value,
+    constraints: $("f-constraints").value,
+    anythingElse: $("f-anything-else").value,
   };
 }
 
@@ -181,7 +215,7 @@ function renderArtifactSet(a) {
   const risksHtml = (a.risks || [])
     .map(
       (r) =>
-        `<tr><td>${r.id}</td><td>${r.category}</td><td>${r.desc}</td><td>${sevPill(r.severity)}</td><td>${sevPill(r.likelihood)}</td><td>${r.mitigation}</td><td>${sevPill(r.status)}</td></tr>`
+        `<tr><td>${r.id}</td><td>${r.category}</td><td>${r.desc}</td><td>${sevPill(r.severity)}</td><td>${sevPill(r.likelihood)}</td><td>${r.mitigation}</td><td>${sevPill(r.status)}</td><td class="muted">${r.sourceNote || "—"}</td></tr>`
     )
     .join("");
   const stakeGroups = ["decision", "influence", "block", "support"]
@@ -203,7 +237,7 @@ function renderArtifactSet(a) {
     <h3>Tasks</h3>
     <table><thead><tr><th>ID</th><th>Task</th><th>Workstream</th><th>Priority</th><th>Dates</th><th>Owner</th><th>Status</th></tr></thead><tbody>${tasksHtml}</tbody></table>
     <h3>Risks</h3>
-    <table><thead><tr><th>ID</th><th>Category</th><th>Description</th><th>Sev</th><th>Likelihood</th><th>Mitigation</th><th>Status</th></tr></thead><tbody>${risksHtml}</tbody></table>
+    <table><thead><tr><th>ID</th><th>Category</th><th>Description</th><th>Sev</th><th>Likelihood</th><th>Mitigation</th><th>Status</th><th>Grounded In</th></tr></thead><tbody>${risksHtml}</tbody></table>
     <h3>Stakeholders</h3>
     ${stakeGroups}
     <h3>Budget</h3>
@@ -229,12 +263,27 @@ function renderResults() {
   }
 }
 
+function renderResearchBox(researchSummary, searchQueries) {
+  const section = $("research-section");
+  if (!researchSummary && !(searchQueries && searchQueries.length)) {
+    section.style.display = "none";
+    return;
+  }
+  section.style.display = "block";
+  const chipsEl = $("research-queries");
+  chipsEl.innerHTML = (searchQueries || [])
+    .map((q) => `<span class="query-chip">${q}</span>`)
+    .join("");
+  $("research-summary").textContent = researchSummary || "(No summary text — search was run but the model produced no written findings.)";
+}
+
 async function generate() {
   const btn = $("generate-btn");
   const statusLine = $("status-line");
   btn.disabled = true;
-  statusLine.textContent = "Generating…";
+  statusLine.textContent = "Researching, then generating… (two model calls, can take 15–30s)";
   $("results-card").style.display = "none";
+  $("research-section").style.display = "none";
 
   const sampleKey = $("sample-select").value;
   const intake = readIntake();
@@ -248,15 +297,28 @@ async function generate() {
       body: JSON.stringify({ intake, model, password }),
     });
     const data = await res.json();
-    if (!res.ok) {
-      throw new Error(data.error + (data.detail ? " — " + JSON.stringify(data.detail).slice(0, 300) : ""));
+
+    // Refusals return HTTP 200 with an `error` field (research step or
+    // generation step declined) rather than a network/server failure —
+    // check for it before assuming success just because res.ok is true.
+    if (!res.ok || data.error) {
+      $("results-card").style.display = "block";
+      renderResearchBox(data.researchSummary, data.searchQueries);
+      $("meta-line").textContent = "";
+      $("results-body").className = "results-body";
+      const detail = data.stopDetails ? ` (category: ${data.stopDetails.category || "unspecified"})` : data.detail ? " — " + JSON.stringify(data.detail).slice(0, 300) : "";
+      $("results-body").innerHTML = `<div class="err-box research-error">${data.error}${detail}</div>`;
+      statusLine.textContent = "";
+      return;
     }
+
     lastResult = {
       claude: data.artifacts,
       mockup: sampleKey !== "__custom__" ? SAMPLES[sampleKey].mockupOutput : null,
     };
     $("meta-line").textContent = `Model: ${data.model} · Latency: ${(data.latencyMs / 1000).toFixed(1)}s` +
       (data.usage ? ` · Input tokens: ${data.usage.input_tokens} · Output tokens: ${data.usage.output_tokens}` : "");
+    renderResearchBox(data.researchSummary, data.searchQueries);
     $("results-card").style.display = "block";
     renderResults();
     statusLine.textContent = "";

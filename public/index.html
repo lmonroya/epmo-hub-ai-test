@@ -65,6 +65,26 @@
         <label>Definition of Done</label>
         <textarea id="f-dod" rows="2"></textarea>
       </div>
+      <div class="field">
+        <label>Team Capacity / Assigned Resources</label>
+        <textarea id="f-team-capacity" rows="2"></textarea>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Decision-Makers</label><textarea id="f-decision-makers" rows="2"></textarea></div>
+        <div class="field"><label>Influencers</label><textarea id="f-influencers" rows="2"></textarea></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Blockers</label><textarea id="f-blockers" rows="2"></textarea></div>
+        <div class="field"><label>Supporters</label><textarea id="f-supporters" rows="2"></textarea></div>
+      </div>
+      <div class="field">
+        <label>Constraints or Non-Negotiables</label>
+        <textarea id="f-constraints" rows="2"></textarea>
+      </div>
+      <div class="field">
+        <label>Anything Else Worth Knowing</label>
+        <textarea id="f-anything-else" rows="2"></textarea>
+      </div>
 
       <div class="actions">
         <button id="generate-btn" class="btn btn-primary">Generate with Claude</button>
@@ -82,6 +102,11 @@
         </div>
       </div>
       <div id="meta-line" class="muted"></div>
+      <div id="research-section" class="research-box" style="display:none;">
+        <h4>Research (Step 1)</h4>
+        <div id="research-queries" class="query-chips"></div>
+        <p id="research-summary"></p>
+      </div>
       <div id="results-body" class="results-body"></div>
     </section>
   </main>
