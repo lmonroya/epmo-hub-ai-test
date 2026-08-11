@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>EPMO Hub — AI Generation Test Harness</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark">EH</div>
+      <div>
+        <div class="brand-name">EPMO Hub</div>
+        <div class="brand-sub">AI Generation Test Harness — not the mockup, not production</div>
+      </div>
+    </div>
+  </header>
+
+  <main class="content">
+    <section class="card">
+      <h1>Generate a Project Plan with Real Claude</h1>
+      <p class="muted">
+        Pick a sample project (real intake data pulled from the EPMO Hub mockup), choose a model,
+        and generate a real project plan / risk register / stakeholder map / budget. Compare it
+        side-by-side against the mockup's existing templated output for the same project.
+      </p>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="sample-select">Sample project</label>
+          <select id="sample-select"></select>
+        </div>
+        <div class="field">
+          <label for="model-select">Model</label>
+          <select id="model-select">
+            <option value="claude-opus-5">Claude Opus 5 (highest quality)</option>
+            <option value="claude-sonnet-5" selected>Claude Sonnet 5 (balanced)</option>
+            <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5 (fastest)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field"><label>Name</label><input id="f-name" type="text" /></div>
+        <div class="field"><label>Type</label><input id="f-type" type="text" /></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Client</label><input id="f-client" type="text" /></div>
+        <div class="field"><label>Industry / LOB</label><input id="f-industry" type="text" /></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Sponsor</label><input id="f-sponsor" type="text" /></div>
+        <div class="field"><label>Duration</label><input id="f-duration" type="text" /></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Budget (USD)</label><input id="f-budget" type="number" /></div>
+        <div class="field"><label>Test-harness password</label><input id="f-password" type="password" placeholder="if one was set" /></div>
+      </div>
+      <div class="field">
+        <label>Objective</label>
+        <textarea id="f-objective" rows="2"></textarea>
+      </div>
+      <div class="field">
+        <label>Definition of Done</label>
+        <textarea id="f-dod" rows="2"></textarea>
+      </div>
+
+      <div class="actions">
+        <button id="generate-btn" class="btn btn-primary">Generate with Claude</button>
+        <span id="status-line" class="muted"></span>
+      </div>
+    </section>
+
+    <section class="card" id="results-card" style="display:none;">
+      <div class="results-head">
+        <h2>Results</h2>
+        <div class="view-toggle">
+          <button class="toggle-btn active" data-view="claude">Claude Output</button>
+          <button class="toggle-btn" data-view="mockup">Mockup's Existing Output</button>
+          <button class="toggle-btn" data-view="side">Side by Side</button>
+        </div>
+      </div>
+      <div id="meta-line" class="muted"></div>
+      <div id="results-body" class="results-body"></div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+{
+  "name": "epmo-hub-ai-test",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Test harness comparing real Claude-generated EPMO project artifacts against the EPMO Hub mockup's templated output.",
+  "engines": {
+    "node": ">=18"
+  }
+}
