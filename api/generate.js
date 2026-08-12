@@ -775,25 +775,37 @@ async function handleGenerate(req, res) {
   const chosenModel = ALLOWED_MODELS.has(model) ? model : "claude-sonnet-5";
 
   const startedAt = Date.now();
+  const researchUserMessage = { role: "user", content: buildResearchPrompt(intake) };
+  let researchMessages = [researchUserMessage];
   let researchData;
-  let messages = [{ role: "user", content: buildResearchPrompt(intake) }];
 
   try {
     researchData = await callAnthropic(apiKey, {
       model: chosenModel,
       max_tokens: MAX_TOKENS_RESEARCH,
       system: SYSTEM_PROMPT,
-      messages,
+      messages: researchMessages,
       tools: [WEB_SEARCH_TOOL],
     });
 
-    if (researchData.stop_reason === "pause_turn") {
-      messages = [...messages, { role: "assistant", content: researchData.content }];
+    // Server-tool loops can pause after many internal search iterations.
+    // Anthropic's continuation pattern is to resend the transcript with the
+    // paused assistant turn appended and let it keep going -- loop (not a
+    // single retry) since it can pause more than once on a heavy research
+    // pass. researchMessages is scoped to just this loop; only the FINAL
+    // resolved researchData.content is used to build the generation-step
+    // history below -- stacking every intermediate paused turn as a
+    // separate assistant message corrupts tool_use/tool_result pairing
+    // (observed live as an orphaned code_execution tool_use block).
+    let pauseGuard = 0;
+    while (researchData.stop_reason === "pause_turn" && pauseGuard < 5) {
+      pauseGuard += 1;
+      researchMessages = [...researchMessages, { role: "assistant", content: researchData.content }];
       researchData = await callAnthropic(apiKey, {
         model: chosenModel,
         max_tokens: MAX_TOKENS_RESEARCH,
         system: SYSTEM_PROMPT,
-        messages,
+        messages: researchMessages,
         tools: [WEB_SEARCH_TOOL],
       });
     }
@@ -827,8 +839,11 @@ async function handleGenerate(req, res) {
     return;
   }
 
-  messages = [
-    ...messages,
+  // Clean 3-turn history for the generation step: original research prompt,
+  // the FINAL resolved research content (not every intermediate paused
+  // turn), and the generation prompt. See the pause_turn loop above.
+  const messages = [
+    researchUserMessage,
     { role: "assistant", content: researchData.content },
     { role: "user", content: buildGenerationPrompt(intake, researchFindings) },
   ];
