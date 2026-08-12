@@ -103,15 +103,16 @@ exceed the cap. The estimated cost is also returned per-generation.
 
 ## Vercel plan requirement
 
-**This needs Vercel Pro, not Hobby.** A full research + generation run can
-take 40–90+ seconds; Hobby hard-caps every serverless function at 10s with
-no way to configure around it, so the request gets killed mid-flight (shows
-up in the browser as a generic "Request failed" / "Load failed", not a clean
-error). `vercel.json` sets `api/generate.js`'s `maxDuration` to 60s, the max
-configurable on Pro without also enabling Fluid Compute. If you still see
-timeouts on larger/complex intakes (tier 3–4, more workstreams and tasks),
-enable Fluid Compute on the project (Settings → Functions) to raise the
-ceiling to 800s.
+**This needs Vercel Pro with Fluid Compute enabled, not Hobby and not plain
+Pro.** A full research + generation run reliably exceeds 60s in practice —
+confirmed via a live `FUNCTION_INVOCATION_TIMEOUT` at that ceiling. Hobby
+hard-caps every function at 10s with no override at all. Plain Pro allows up
+to 60s, which still isn't enough here. Enable **Fluid Compute** on the
+project (Settings → Functions) — usage-based pricing for the extra duration,
+on top of the Pro subscription — which unlocks `maxDuration` up to 800s.
+`vercel.json` sets `api/generate.js`'s `maxDuration` to 300s, generous
+headroom without leaving a stuck request hanging for 13 minutes if something
+is actually wrong.
 
 ## Known scope cuts (POC, not production)
 
