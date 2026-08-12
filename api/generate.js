@@ -724,6 +724,21 @@ function runValidationChecks(artifact, researchFindings) {
 // ---------------------------------------------------------------------------
 
 module.exports = async (req, res) => {
+  try {
+    await handleGenerate(req, res);
+  } catch (err) {
+    // Last-resort guardrail: an uncaught throw here would otherwise leave
+    // Vercel to return its own non-JSON error page, which the frontend's
+    // res.json() can't parse — surfacing as a cryptic browser-level error
+    // instead of a readable message. Always answer with JSON.
+    console.error("Unhandled error in /api/generate:", err);
+    if (!res.headersSent) {
+      res.status(500).json({ error: "Unexpected server error.", detail: String((err && err.message) || err) });
+    }
+  }
+};
+
+async function handleGenerate(req, res) {
   if (req.method !== "POST") {
     res.status(405).json({ error: "POST only" });
     return;
@@ -892,7 +907,7 @@ module.exports = async (req, res) => {
       durationMs,
     },
   });
-};
+}
 
 module.exports.__vocab = {
   RISK_CATEGORIES, RESPONSE_STRATEGIES, BUDGET_CATEGORIES, OWNER_ROLES,
