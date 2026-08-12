@@ -1,103 +1,110 @@
-# EPMO Hub — AI Generation Test Harness
+# EPMO Hub — AI Generation POC
 
-A small, standalone prototype for testing what **real** Claude-generated project
-artifacts (Project Plan, Risk Register, Stakeholder Map, Budget) look like,
-compared side-by-side against the EPMO Hub mockup's existing templated output
-for the same sample projects.
+A working demo, per `CLAUDE-CODE-POC-BRIEF.md`: intake form → live two-step Claude
+generation (real web research, then a forced tool call) → a full first-draft
+artifact set rendered with visible provenance on every element — phases,
+risks (inherent → residual), assumptions, milestones, stakeholders, budget,
+and tasks.
 
-This is **not** part of the EPMO Hub mockup and does not modify it. It exists
-purely to de-risk the AI-generation piece of the real build before committing
-to it in a PRD.
+This is a **POC**, not the production build. It's a standalone harness (its
+own `public/` frontend, not the EPMO Hub mockup), built to visually rhyme
+with that mockup's design system and field-shape conventions
+(`risks[].source`/`sourceLabel`, `phases[].window`, `tasks[].key`/`owner`, a
+provenance object on every element) so it drops in cleanly later.
 
 ## How it works
 
-- `public/` — a plain static frontend (no build step, no framework).
-- `api/generate.js` — a single Vercel serverless function that holds the
-  Anthropic API key server-side and runs a **two-step** request so the
-  server-tool + forced-tool-call combination is used correctly:
-  1. **Research** — the model gets the real `web_search` server tool
-     (`web_search_20260209`) and is asked to find current regulatory,
-     market, and vendor context relevant to the project, then summarize
-     what it found in plain text. `tool_choice` is left unforced here —
-     forcing a tool skips straight to that tool call, which would prevent
-     the model from searching first.
-  2. **Generate** — a follow-up turn in the same conversation (so the
-     research is in context), with `tool_choice` forced onto a
-     `submit_project_artifacts` tool, returning clean JSON that matches the
-     mockup's own data shapes. Each risk carries a `sourceNote` field so you
-     can see which ones were actually grounded in a search result.
-- Two real sample projects (Core Banking Platform Migration, APAC Market
-  Entry) are hardcoded in `public/app.js`, copied verbatim from the mockup —
-  both their full intake fields (including team capacity, decision-makers,
-  influencers, blockers, supporters, constraints) and the mockup's existing
-  hand-written output, so the comparison is apples-to-apples.
-- The results panel shows the research findings (search queries run + the
-  model's summary) above the generated artifacts, so the grounding is
-  visible, not just the final output.
-
-**Scope note:** this wires up the "Generate Draft" artifact-generation flow
-(Plan/Risk/Stakeholders/Budget) plus its research step. It does not wire up
-the chat assistant, AI Review, or Meeting summarization — those were out of
-scope for this pass.
+- `public/` — static frontend, no build step, no framework.
+- `api/generate.js` — the Vercel serverless function that holds the
+  Anthropic API key server-side and runs the two-step generation flow:
+  1. **Research** — the model gets the real `web_search` tool and only
+     generalized attributes (type, industry, jurisdictions, dates, budget
+     band, vendor status, compliance flags — never client, project, sponsor,
+     or description text). Every `web_search_tool_result` is walked into a
+     structured, cited `researchFindings[]` array (id/title/url/date) —
+     that's what makes provenance badges resolve to a real URL.
+  2. **Generate** — a follow-up turn, research + findings still in context,
+     `tool_choice` forced onto `submit_project_artifacts`. Every element in
+     the response carries a `provenance` object (basis/detail/confidence).
+- `api/login.js` + `api/_lib/session.js` — the demo password gate (PRD-01
+  §3.8 shared-password mode). Not authentication: a stateless, HMAC-signed
+  session token, no DB, no user accounts. `/api/generate` rejects requests
+  without a valid token whenever `TEST_HARNESS_PASSWORD` is set.
+- Three validation checks run after the tool call (referential integrity,
+  finding-ID citations, stray invented names) and come back as
+  `validationWarnings[]` — they never block or silently auto-correct, except
+  stripping any invented `ownerName`/`keyContacts[].name`.
 
 ## One-time setup
 
-### 1. Push this to GitHub
+### 1. Push this to GitHub (if not already)
 
 ```bash
 cd ~/Documents/epmo-hub-ai-test
-git init
-git add .
-git commit -m "Initial EPMO Hub AI generation test harness"
-```
-
-Then create a **new, empty** repository on GitHub (no README/gitignore —
-this folder already has them), and push:
-
-```bash
-git remote add origin https://github.com/<your-username>/epmo-hub-ai-test.git
-git branch -M main
-git push -u origin main
+git add -A
+git commit -m "POC: research-grounded generation with provenance"
+git push
 ```
 
 ### 2. Connect it to Vercel
 
-1. Go to [vercel.com/new](https://vercel.com/new) and sign in.
-2. Import the `epmo-hub-ai-test` GitHub repo you just pushed.
-3. Framework preset: leave as **Other** (there's no framework here — Vercel
-   will auto-detect `public/` as static output and `api/` as serverless
-   functions).
-4. Before clicking Deploy, expand **Environment Variables** and add:
-   - `ANTHROPIC_API_KEY` — your real Anthropic API key.
-   - `TEST_HARNESS_PASSWORD` — any password you choose. This is a simple
-     shared-secret gate so a stray/shared URL can't rack up API costs on your
-     key. Leave it unset if you don't want a password gate at all.
-5. Click **Deploy**. You'll get a URL like `epmo-hub-ai-test.vercel.app`.
+1. Go to [vercel.com/new](https://vercel.com/new) and import this repo.
+2. Framework preset: **Other** (static `public/` + serverless `api/`).
+3. Before deploying, add Environment Variables — see `.env.example`:
+   - `ANTHROPIC_API_KEY` — required.
+   - `TEST_HARNESS_PASSWORD` — recommended; enables the gate screen.
+   - `SESSION_SECRET` — optional, falls back to the password above.
+   - `GENERATION_SPEND_CAP_USD` — optional, defaults to 40.
+4. Deploy.
 
-That's it — every future `git push` to `main` will auto-redeploy.
+### 3. Test locally instead (no deploy)
+
+```bash
+npm i -g vercel   # if you don't already have it
+cd ~/Documents/epmo-hub-ai-test
+vercel dev
+```
+
+`vercel dev` serves `public/` and runs `api/*.js` as real serverless
+functions locally, reading `.env` (copy `.env.example` → `.env` first). This
+is the only way to exercise the full flow, including the live Anthropic
+call — a plain static file server won't run the `api/` functions.
 
 ## Using it
 
-1. Open the deployed URL.
-2. Pick a sample project (or choose "Custom" and type your own intake
-   fields).
-3. Pick a model — Opus 5, Sonnet 5, or Haiku 4.5 — to compare quality/speed
-   across tiers.
-4. Enter the password if you set `TEST_HARNESS_PASSWORD`.
-5. Click **Generate with Claude**. This takes 15–30 seconds (two model calls:
-   research, then generate) — once it returns, the research box shows what
-   was searched and found, and the toggle above the Results card lets you
-   view Claude's output alone, the mockup's existing output alone, or both
-   side-by-side.
-
-If either step gets refused by the model's safety classifiers (rare, but
-possible on any live model call), the results panel shows that plainly
-rather than silently rendering empty tables.
+1. Open the app. If a password is set, enter it — this exchanges the
+   password for a short-lived signed session token (`sessionStorage`, 8h).
+2. Pick a sample project or fill in your own intake — project basics,
+   schedule + jurisdiction (date pickers, required jurisdictions, currency,
+   vendor status), objective/constraints, and compliance flags.
+3. Pick a model (Opus 5 / Sonnet 5 / Haiku 4.5) and click **Generate Draft**.
+4. The staged status line shows research → drafting → consistency-checking
+   while the two model calls run (typically 15–40s).
+5. Results render as tabs: Overview, Project Plan, Risk Register,
+   Assumptions, Milestones, Stakeholders, Dependencies, Budget, Research.
+   - **Provenance badges** (colored by confidence) sit on every element —
+     click one to see its basis and, where it cites a research finding,
+     a link straight to the real source URL.
+   - **Feasibility flags** and a **low-confidence review queue** appear above
+     the tabs when applicable; queue items jump straight to the element.
+   - Every date has a dotted underline — "AI-suggested, confirm before use."
+   - The **Research** tab shows every search query executed and every
+     finding cited, so it's visible that nothing confidential left the
+     perimeter.
 
 ## Cost note
 
-Each generation is now **two real API calls** — a research call (with up to
-4 real web searches) and a generation call with a fairly large
-structured-output schema. Expect a few thousand tokens in and out combined
-per full run. Check current Anthropic pricing for the models above if you
-want to estimate cost for a testing session.
+Each generation is two real API calls — a research call (up to 10 web
+searches) and a generation call against a large structured-output schema.
+`api/generate.js` pre-flights a worst-case cost estimate against
+`GENERATION_SPEND_CAP_USD` (default $40) before starting the generation
+step, and halts with a clear message rather than truncating if it would
+exceed the cap. The estimated cost is also returned per-generation.
+
+## Known scope cuts (POC, not production)
+
+Per the brief: no RBAC/roles, no admin panel, no persistence (draft held in
+memory by the browser tab only), no brain/knowledge-corpus retrieval, no
+revision prompt, no reports/audit trail. See `CLAUDE-CODE-POC-BRIEF.md` §1
+for the full do/do-not-build list, and PRD-01 / PRD-10 for what those look
+like in the real build.

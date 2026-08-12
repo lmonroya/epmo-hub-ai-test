@@ -7,109 +7,156 @@
 <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <header class="topbar">
-    <div class="brand">
-      <div class="brand-mark">EH</div>
-      <div>
-        <div class="brand-name">EPMO Hub</div>
-        <div class="brand-sub">AI Generation Test Harness — not the mockup, not production</div>
+
+  <div id="gate-screen">
+    <form class="gate-card" id="gate-form">
+      <div class="gate-mark">EH</div>
+      <h1>EPMO Hub — Generation POC</h1>
+      <p class="muted">This demo is behind a shared password, not real authentication. Enter it to continue.</p>
+      <div class="field">
+        <label for="gate-password">Password</label>
+        <input id="gate-password" type="password" autocomplete="off" autofocus />
       </div>
-    </div>
-  </header>
+      <button type="submit" class="btn btn-primary" id="gate-submit">Enter</button>
+      <div class="gate-error" id="gate-error"></div>
+      <div class="gate-note">
+        Not authentication — a speed bump so the demo URL isn't fully open (PRD-01 §3.8, shared-password mode).
+        Use only plausible fictional projects; nothing Confidential or MNPI belongs here.
+      </div>
+    </form>
+  </div>
 
-  <main class="content">
-    <section class="card">
-      <h1>Generate a Project Plan with Real Claude</h1>
-      <p class="muted">
-        Pick a sample project (real intake data pulled from the EPMO Hub mockup), choose a model,
-        and generate a real project plan / risk register / stakeholder map / budget. Compare it
-        side-by-side against the mockup's existing templated output for the same project.
-      </p>
-
-      <div class="field-row">
-        <div class="field">
-          <label for="sample-select">Sample project</label>
-          <select id="sample-select"></select>
-        </div>
-        <div class="field">
-          <label for="model-select">Model</label>
-          <select id="model-select">
-            <option value="claude-opus-5">Claude Opus 5 (highest quality)</option>
-            <option value="claude-sonnet-5" selected>Claude Sonnet 5 (balanced)</option>
-            <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5 (fastest)</option>
-          </select>
+  <div id="app-shell" style="display:none;">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark">EH</div>
+        <div>
+          <div class="brand-name">EPMO Hub</div>
+          <div class="brand-sub">AI Generation POC — research-grounded, provenance-carrying draft artifacts</div>
         </div>
       </div>
+    </header>
 
-      <div class="field-row">
-        <div class="field"><label>Name</label><input id="f-name" type="text" /></div>
-        <div class="field"><label>Type</label><input id="f-type" type="text" /></div>
-      </div>
-      <div class="field-row">
-        <div class="field"><label>Client</label><input id="f-client" type="text" /></div>
-        <div class="field"><label>Industry / LOB</label><input id="f-industry" type="text" /></div>
-      </div>
-      <div class="field-row">
-        <div class="field"><label>Sponsor</label><input id="f-sponsor" type="text" /></div>
-        <div class="field"><label>Duration</label><input id="f-duration" type="text" /></div>
-      </div>
-      <div class="field-row">
-        <div class="field"><label>Budget (USD)</label><input id="f-budget" type="number" /></div>
-        <div class="field"><label>Test-harness password</label><input id="f-password" type="password" placeholder="if one was set" /></div>
-      </div>
-      <div class="field">
-        <label>Objective</label>
-        <textarea id="f-objective" rows="2"></textarea>
-      </div>
-      <div class="field">
-        <label>Definition of Done</label>
-        <textarea id="f-dod" rows="2"></textarea>
-      </div>
-      <div class="field">
-        <label>Team Capacity / Assigned Resources</label>
-        <textarea id="f-team-capacity" rows="2"></textarea>
-      </div>
-      <div class="field-row">
-        <div class="field"><label>Decision-Makers</label><textarea id="f-decision-makers" rows="2"></textarea></div>
-        <div class="field"><label>Influencers</label><textarea id="f-influencers" rows="2"></textarea></div>
-      </div>
-      <div class="field-row">
-        <div class="field"><label>Blockers</label><textarea id="f-blockers" rows="2"></textarea></div>
-        <div class="field"><label>Supporters</label><textarea id="f-supporters" rows="2"></textarea></div>
-      </div>
-      <div class="field">
-        <label>Constraints or Non-Negotiables</label>
-        <textarea id="f-constraints" rows="2"></textarea>
-      </div>
-      <div class="field">
-        <label>Anything Else Worth Knowing</label>
-        <textarea id="f-anything-else" rows="2"></textarea>
-      </div>
+    <main class="content">
+      <section class="card">
+        <h1>Generate a Project Draft with Real Claude</h1>
+        <p class="muted">
+          Pick a sample project or fill in your own intake, choose a model, and generate a full
+          first-draft artifact set: phases, risks (inherent → residual), assumptions, milestones,
+          stakeholders, budget, and tasks — every element carrying provenance back to a real search
+          result or an honest "inference."
+        </p>
 
-      <div class="actions">
-        <button id="generate-btn" class="btn btn-primary">Generate with Claude</button>
-        <span id="status-line" class="muted"></span>
-      </div>
-    </section>
-
-    <section class="card" id="results-card" style="display:none;">
-      <div class="results-head">
-        <h2>Results</h2>
-        <div class="view-toggle">
-          <button class="toggle-btn active" data-view="claude">Claude Output</button>
-          <button class="toggle-btn" data-view="mockup">Mockup's Existing Output</button>
-          <button class="toggle-btn" data-view="side">Side by Side</button>
+        <div class="field-row">
+          <div class="field">
+            <label for="sample-select">Sample project</label>
+            <select id="sample-select"></select>
+          </div>
+          <div class="field">
+            <label for="model-select">Model</label>
+            <select id="model-select">
+              <option value="claude-opus-5">Claude Opus 5 (highest quality)</option>
+              <option value="claude-sonnet-5" selected>Claude Sonnet 5 (balanced)</option>
+              <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5 (fastest)</option>
+            </select>
+          </div>
         </div>
-      </div>
-      <div id="meta-line" class="muted"></div>
-      <div id="research-section" class="research-box" style="display:none;">
-        <h4>Research (Step 1)</h4>
-        <div id="research-queries" class="query-chips"></div>
-        <p id="research-summary"></p>
-      </div>
-      <div id="results-body" class="results-body"></div>
-    </section>
-  </main>
+
+        <fieldset>
+          <legend>Project basics</legend>
+          <div class="field-row">
+            <div class="field"><label>Name</label><input id="f-name" type="text" /></div>
+            <div class="field"><label>Type</label><input id="f-type" type="text" placeholder="e.g. Core banking migration" /></div>
+          </div>
+          <div class="field">
+            <label>Description</label>
+            <textarea id="f-description" rows="2" placeholder="What is this project, in plain terms?"></textarea>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>Client</label><input id="f-client" type="text" placeholder="Internal, if none" /></div>
+            <div class="field"><label>Industry / LOB</label><input id="f-industry" type="text" /></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>Sponsor</label><input id="f-sponsor" type="text" /></div>
+            <div class="field"><label>Budget</label><input id="f-budget" type="number" min="0" placeholder="leave blank if unknown" /></div>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Schedule &amp; jurisdiction</legend>
+          <div class="field-row">
+            <div class="field"><label>Start Date</label><input id="f-start-date" type="date" required /></div>
+            <div class="field"><label>Target End Date</label><input id="f-end-date" type="date" required /></div>
+            <div class="field">
+              <label for="f-currency">Currency</label>
+              <select id="f-currency">
+                <option value="USD">USD $</option>
+                <option value="CAD">CAD $</option>
+                <option value="MXN">MXN $</option>
+                <option value="BRL">BRL R$</option>
+                <option value="GBP">GBP £</option>
+                <option value="EUR">EUR €</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <label>Jurisdictions in scope <span class="field-hint" style="display:inline">(required, at least one)</span></label>
+            <div class="check-grid" id="jurisdiction-checks"></div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="f-vendor-status">Vendor status</label>
+              <select id="f-vendor-status">
+                <option value="none">None</option>
+                <option value="selecting">Selecting</option>
+                <option value="RFP in flight">RFP in flight</option>
+                <option value="selected & contracted">Selected &amp; contracted</option>
+                <option value="onboarding">Onboarding</option>
+                <option value="at work">At work</option>
+                <option value="completed">Completed</option>
+                <option value="removed">Removed</option>
+              </select>
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Objective &amp; constraints</legend>
+          <div class="field"><label>Objective</label><textarea id="f-objective" rows="2"></textarea></div>
+          <div class="field"><label>Definition of Done</label><textarea id="f-dod" rows="2"></textarea></div>
+          <div class="field"><label>Team Capacity / Assigned Resources</label><textarea id="f-team-capacity" rows="2"></textarea></div>
+          <div class="field-row">
+            <div class="field"><label>Decision-Makers</label><textarea id="f-decision-makers" rows="2"></textarea></div>
+            <div class="field"><label>Influencers</label><textarea id="f-influencers" rows="2"></textarea></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>Blockers</label><textarea id="f-blockers" rows="2"></textarea></div>
+            <div class="field"><label>Supporters</label><textarea id="f-supporters" rows="2"></textarea></div>
+          </div>
+          <div class="field"><label>Constraints or Non-Negotiables</label><textarea id="f-constraints" rows="2"></textarea></div>
+          <div class="field"><label>Anything Else Worth Knowing</label><textarea id="f-anything-else" rows="2"></textarea></div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Compliance flags</legend>
+          <div class="check-grid" id="compliance-checks"></div>
+        </fieldset>
+
+        <div class="actions">
+          <button id="generate-btn" class="btn btn-primary">Generate Draft</button>
+          <span id="status-line" class="status-line"></span>
+        </div>
+      </section>
+
+      <section class="card" id="results-card" style="display:none;">
+        <div class="results-head">
+          <h2>Draft Results</h2>
+        </div>
+        <div id="meta-line" class="muted"></div>
+        <div id="results-body"></div>
+      </section>
+    </main>
+  </div>
 
   <script src="app.js"></script>
 </body>

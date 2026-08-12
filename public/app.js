@@ -1,134 +1,236 @@
-// Sample data below is copied verbatim from the EPMO Hub mockup's own
-// PROJECTS object (Core Banking Platform Migration, APAC Market Entry) —
-// both the intake fields and the mockup's existing templated output, so
-// the comparison is against real content, not a re-imagined version of it.
+// EPMO Hub — AI Generation POC frontend. Standalone harness UI (not the
+// EPMO Hub mockup itself), built to visually rhyme with it: same design
+// tokens, same field-shape conventions (source/sourceLabel, phases[].window,
+// tasks[].key/owner) — see CLAUDE-CODE-POC-BRIEF.md.
+
+const $ = (id) => document.getElementById(id);
+
+const JURISDICTIONS = [
+  "United States", "Canada", "Mexico", "Brazil", "United Kingdom", "Germany",
+  "France", "Spain", "European Union (bloc-wide)", "Other",
+];
+const COMPLIANCE_FLAGS = [
+  { value: "CUSTOMER PII / PERSONAL DATA", label: "Customer PII / personal data" },
+  { value: "FINANCIAL REGULATION", label: "Financial regulation" },
+  { value: "HEALTH DATA / HIPAA", label: "Health data / HIPAA" },
+  { value: "EMPLOYMENT LAW", label: "Employment law" },
+  { value: "INTELLECTUAL PROPERTY", label: "Intellectual property" },
+  { value: "INDUSTRY-SPECIFIC REGULATIONS", label: "Industry-specific regulations" },
+];
 
 const SAMPLES = {
   "core-banking": {
     intake: {
       name: "Core Banking Platform Migration",
       type: "Infrastructure / Technology Build",
+      description: "Migrate the core banking ledger and transaction processing off a legacy mainframe onto a modern cloud-native platform without disrupting daily branch operations.",
       client: "Meridian Trust Bank",
       industry: "Financial Services / Retail Banking",
       sponsor: "M. Reyes, COO",
-      duration: "Jan 2026 – Dec 2026",
+      startDate: "2026-01-05",
+      targetEndDate: "2026-12-20",
+      currency: "USD",
+      jurisdictions: ["United States"],
+      vendorStatus: "at work",
       budget: 4200000,
-      objective:
-        "Migrate core banking ledger and transaction processing from the legacy mainframe to a modern cloud-native platform without disrupting daily branch operations.",
-      dod:
-        "Legacy mainframe fully decommissioned; 100% of transaction volume processed on the new platform for 60 consecutive days with zero critical incidents.",
-      teamCapacity:
-        "Architecture Guild, Integration Pod, and InfoSec are the primary internal teams; branch training relies on 12 regional ops managers; D. Alvarez is program lead.",
+      objective: "Migrate core banking ledger and transaction processing from the legacy mainframe to a modern cloud-native platform without disrupting daily branch operations.",
+      dod: "Legacy mainframe fully decommissioned; 100% of transaction volume processed on the new platform for 60 consecutive days with zero critical incidents.",
+      teamCapacity: "Architecture Guild, Integration Pod, and InfoSec are the primary internal teams; branch training relies on 12 regional ops managers; D. Alvarez is program lead.",
       decisionMakers: "M. Reyes, COO (Executive Sponsor); Steering Committee (monthly go/no-go on cutover gates)",
       influencers: "Core Platform Vendor Account Exec (delivery pod allocation); Head of Retail Banking Ops (branch rollout sequencing)",
       blockers: "Federal Reserve Examiner — regulatory approval gate before cutover; examiner has not yet confirmed audit logging scope.",
       supporters: "12 regional branch ops managers coordinating local training.",
-      constraints:
-        "Regulatory sign-off requires a full 60-day clean parallel run with zero exceptions before the legacy mainframe can be decommissioned; cutover cannot move earlier than Dec 2026.",
-      anythingElse:
-        "Core platform vendor was previously over-allocated across three concurrent client migrations, causing a 3-week Phase 2 slip; a dedicated vendor delivery pod was escalated into place in Q3.",
-    },
-    mockupOutput: {
-      phases: [
-        { id: "p1", name: "Phase 1 — Foundation & Design", window: "Jan – Mar 2026" },
-        { id: "p2", name: "Phase 2 — Build & Parallel Run", window: "Apr – Sep 2026" },
-        { id: "p3", name: "Phase 3 — Cutover & Stabilization", window: "Oct – Dec 2026" },
-      ],
-      workstreams: ["Architecture", "Vendor Management", "Integration", "Change Management", "Security", "Operations"],
-      tasks: [
-        { id: "CB-01", phase: "p1", workstream: "Architecture", task: "Finalize target-state architecture and data model", priority: "critical", startDate: "2026-01-05", endDate: "2026-02-10", owner: "Architecture Guild", status: "Complete" },
-        { id: "CB-02", phase: "p1", workstream: "Vendor Management", task: "Execute master services agreement with core platform vendor", priority: "critical", startDate: "2026-01-10", endDate: "2026-02-20", owner: "D. Alvarez", status: "Complete" },
-        { id: "CB-03", phase: "p2", workstream: "Integration", task: "Build reconciliation batch job between legacy and new ledger", priority: "high", startDate: "2026-04-01", endDate: "2026-07-15", owner: "Integration Pod", status: "In Progress" },
-        { id: "CB-04", phase: "p2", workstream: "Change Management", task: "Deliver branch staff training, wave 1 (120 staff)", priority: "high", startDate: "2026-05-01", endDate: "2026-06-30", owner: "L. Ferris", status: "In Progress" },
-        { id: "CB-05", phase: "p2", workstream: "Security", task: "Implement just-in-time credential issuance for migration scripts", priority: "critical", startDate: "2026-08-01", endDate: "2026-09-15", owner: "InfoSec", status: "Not Started" },
-        { id: "CB-06", phase: "p3", workstream: "Operations", task: "Run 60-day clean parallel period sign-off", priority: "critical", startDate: "2026-10-01", endDate: "2026-11-30", owner: "Architecture Guild", status: "Not Started" },
-        { id: "CB-07", phase: "p3", workstream: "Operations", task: "Decommission legacy mainframe", priority: "critical", startDate: "2026-12-01", endDate: "2026-12-20", owner: "D. Alvarez", status: "Not Started" },
-      ],
-      risks: [
-        { id: "R-014", category: "Integration", desc: "Legacy core ledger API lacks real-time reconciliation hooks, risking data drift during the parallel run.", severity: "high", likelihood: "medium", mitigation: "Add a nightly reconciliation batch job as an interim control until real-time hooks ship in vendor release v2.2.", status: "Open" },
-        { id: "R-015", category: "Vendor", desc: "Core platform vendor's implementation team is over-allocated across three concurrent client migrations.", severity: "high", likelihood: "high", mitigation: "Escalate to the vendor account executive; request a dedicated delivery pod for Q3.", status: "Open" },
-        { id: "R-016", category: "Regulatory", desc: "The Federal Reserve's updated real-time payments guidance (RTP Rule 2026-04) may require additional audit logging not yet scoped.", severity: "medium", likelihood: "medium", mitigation: "Confirm scope with Compliance; add an audit-logging story to the integration backlog.", status: "Open" },
-        { id: "R-017", category: "Change Management", desc: "Branch staff report low confidence with new teller workflows during UAT feedback sessions.", severity: "medium", likelihood: "high", mitigation: "Expand hands-on training sessions; add in-app guided walkthroughs for the first 30 days live.", status: "Mitigated" },
-        { id: "R-018", category: "Security", desc: "Data migration scripts require elevated database credentials that are not currently time-boxed.", severity: "critical", likelihood: "low", mitigation: "Implement just-in-time credential issuance with a 4-hour expiry window.", status: "Open" },
-      ],
-      stakeholders: {
-        decision: [{ name: "M. Reyes", note: "COO, Executive Sponsor" }, { name: "Steering Committee", note: "Monthly go/no-go on cutover gates" }],
-        influence: [{ name: "Core Platform Vendor Account Exec", note: "Delivery pod allocation" }, { name: "Head of Retail Banking Ops", note: "Branch rollout sequencing" }],
-        block: [{ name: "Federal Reserve Examiner", note: "Regulatory approval gate before cutover" }],
-        support: [{ name: "Regional Branch Ops Managers (12)", note: "Local training coordination" }],
-      },
-      budgetLines: [
-        { category: "Vendor Licensing & Implementation", planned: 1650000, actual: 1180000 },
-        { category: "Internal Labor", planned: 1400000, actual: 1020000 },
-        { category: "Training & Change Management", planned: 380000, actual: 210000 },
-        { category: "Infrastructure & Cloud", planned: 520000, actual: 340000 },
-        { category: "Contingency (15%)", planned: 250000, actual: 0 },
-      ],
+      constraints: "Regulatory sign-off requires a full 60-day clean parallel run with zero exceptions before the legacy mainframe can be decommissioned; cutover cannot move earlier than Dec 2026.",
+      anythingElse: "Core platform vendor was previously over-allocated across three concurrent client migrations, causing a 3-week Phase 2 slip; a dedicated vendor delivery pod was escalated into place in Q3.",
+      complianceFlags: ["FINANCIAL REGULATION", "CUSTOMER PII / PERSONAL DATA"],
     },
   },
   "apac-expansion": {
     intake: {
       name: "APAC Market Entry — Retail Expansion",
       type: "Strategic Growth",
+      description: "Establish a direct-to-consumer retail presence in Singapore and Malaysia as a beachhead for broader APAC expansion.",
       client: "Northfield Retail Group",
       industry: "Retail / International Expansion",
       sponsor: "A. Lindqvist, CEO",
-      duration: "Mar 2026 – Feb 2027",
+      startDate: "2026-03-02",
+      targetEndDate: "2027-02-26",
+      currency: "USD",
+      jurisdictions: ["Other"],
+      vendorStatus: "at work",
       budget: 2800000,
-      objective:
-        "Establish a direct-to-consumer retail presence in Singapore and Malaysia as a beachhead for broader APAC expansion.",
-      dod:
-        "Three flagship stores open and operating at 80% or more of first-year sales targets by the end of Q4 2027.",
-      teamCapacity:
-        "S. Okafor leads the program; Legal, a third-party Build Partner for store fit-out, Regional HR, and Regional Marketing are the supporting teams.",
+      objective: "Establish a direct-to-consumer retail presence in Singapore and Malaysia as a beachhead for broader APAC expansion.",
+      dod: "Three flagship stores open and operating at 80% or more of first-year sales targets by the end of Q4 2027.",
+      teamCapacity: "S. Okafor leads the program; Legal, a third-party Build Partner for store fit-out, Regional HR, and Regional Marketing are the supporting teams.",
       decisionMakers: "A. Lindqvist, CEO (Executive Sponsor)",
       influencers: "Regional Marketing Director (launch campaign sequencing)",
       blockers: "Malaysia Ministry of Domestic Trade — retail operating license application still pending regulator review (Owner: Legal).",
       supporters: "Singapore & Kuala Lumpur store teams handling local market execution.",
-      constraints:
-        "Malaysia requires a locally incorporated entity with a resident director before any retail operating license can be issued; marketing spend is held until stores are ready.",
-      anythingElse:
-        "A local Singapore competitor announced an aggressive pricing campaign in the Orchard Road corridor ahead of launch; launch pricing was adjusted for the first 90 days in response.",
-    },
-    mockupOutput: {
-      phases: [
-        { id: "p1", name: "Phase 1 — Market Entry Setup", window: "Mar – Jun 2026" },
-        { id: "p2", name: "Phase 2 — Build-Out & Hiring", window: "Jul – Nov 2026" },
-        { id: "p3", name: "Phase 3 — Launch & Ramp", window: "Dec 2026 – Feb 2027" },
-      ],
-      workstreams: ["Legal & Entity", "Real Estate", "Store Build-Out", "Talent", "Marketing"],
-      tasks: [
-        { id: "AP-01", phase: "p1", workstream: "Legal & Entity", task: "Incorporate Malaysia entity and secure resident director", priority: "critical", startDate: "2026-03-01", endDate: "2026-04-15", owner: "Legal", status: "Complete" },
-        { id: "AP-02", phase: "p1", workstream: "Real Estate", task: "Finalize lease agreements for 3 flagship sites", priority: "critical", startDate: "2026-03-10", endDate: "2026-05-01", owner: "S. Okafor", status: "Complete" },
-        { id: "AP-03", phase: "p2", workstream: "Store Build-Out", task: "Complete fit-out for Singapore flagship (Orchard Road)", priority: "high", startDate: "2026-07-01", endDate: "2026-10-15", owner: "Build Partner", status: "In Progress" },
-        { id: "AP-04", phase: "p2", workstream: "Talent", task: "Hire and train store managers across 3 markets", priority: "high", startDate: "2026-07-15", endDate: "2026-11-01", owner: "Regional HR", status: "In Progress" },
-        { id: "AP-05", phase: "p3", workstream: "Marketing", task: "Execute launch campaign across 3 markets", priority: "high", startDate: "2026-12-01", endDate: "2027-02-15", owner: "Regional Marketing", status: "Not Started" },
-      ],
-      risks: [
-        { id: "R-101", category: "Market", desc: "A local competitor announced an aggressive pricing campaign in the Singapore Orchard Road corridor ahead of our launch.", severity: "medium", likelihood: "medium", mitigation: "Adjust the launch pricing bundle for the first 90 days; monitor competitor response weekly.", status: "Open" },
-        { id: "R-102", category: "Regulatory", desc: "Malaysia requires a locally incorporated entity with a resident director before retail operating licenses can be issued.", severity: "high", likelihood: "high", mitigation: "Engage local counsel; incorporation targeted for Month 2.", status: "Mitigated" },
-        { id: "R-103", category: "Talent", desc: "The retail hiring pipeline for store managers in Kuala Lumpur is thinner than modeled.", severity: "medium", likelihood: "medium", mitigation: "Partner with two additional recruiting agencies; extend relocation packages to Singapore-based candidates.", status: "Open" },
-        { id: "R-104", category: "Supply Chain", desc: "The regional distribution partner has no prior experience with our product's cold-chain requirements.", severity: "low", likelihood: "low", mitigation: "Run a trial shipment before committing to a full-volume contract.", status: "Open" },
-      ],
-      stakeholders: {
-        decision: [{ name: "A. Lindqvist", note: "CEO, Executive Sponsor" }],
-        influence: [{ name: "Regional Marketing Director", note: "Launch campaign sequencing" }],
-        block: [{ name: "Malaysia Ministry of Domestic Trade", note: "Retail operating license approval" }],
-        support: [{ name: "Singapore & KL Store Teams", note: "Local market execution" }],
-      },
-      budgetLines: [
-        { category: "Real Estate & Build-Out", planned: 1400000, actual: 980000 },
-        { category: "Hiring & Training", planned: 520000, actual: 310000 },
-        { category: "Launch Marketing", planned: 600000, actual: 90000 },
-        { category: "Legal & Entity Setup", planned: 280000, actual: 265000 },
-      ],
+      constraints: "Malaysia requires a locally incorporated entity with a resident director before any retail operating license can be issued; marketing spend is held until stores are ready.",
+      anythingElse: "A local Singapore competitor announced an aggressive pricing campaign in the Orchard Road corridor ahead of launch; launch pricing was adjusted for the first 90 days in response. Jurisdictions of operation (Singapore, Malaysia) aren't in the fixed jurisdiction list below — logged as 'Other'.",
+      complianceFlags: [],
     },
   },
 };
 
-const $ = (id) => document.getElementById(id);
-let currentView = "claude";
-let lastResult = null; // { claude: artifacts, mockup: mockupOutput }
+// ---------------------------------------------------------------------------
+// Gate
+
+const SESSION_KEY = "epmoSessionToken";
+const SESSION_EXP_KEY = "epmoSessionExpiresAt";
+let appInitialized = false;
+
+function hasValidLocalSession() {
+  const token = sessionStorage.getItem(SESSION_KEY);
+  const exp = Number(sessionStorage.getItem(SESSION_EXP_KEY));
+  return !!token && exp && Date.now() < exp;
+}
+function storeSession(token, expiresAt) {
+  sessionStorage.setItem(SESSION_KEY, token);
+  sessionStorage.setItem(SESSION_EXP_KEY, String(expiresAt));
+}
+function clearSession() {
+  sessionStorage.removeItem(SESSION_KEY);
+  sessionStorage.removeItem(SESSION_EXP_KEY);
+}
+function showApp() {
+  $("gate-screen").style.display = "none";
+  $("app-shell").style.display = "block";
+  if (!appInitialized) { initApp(); appInitialized = true; }
+}
+function showGate(message) {
+  $("app-shell").style.display = "none";
+  $("gate-screen").style.display = "flex";
+  $("gate-error").textContent = message || "";
+}
+
+$("gate-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const btn = $("gate-submit");
+  btn.disabled = true;
+  $("gate-error").textContent = "";
+  try {
+    const res = await fetch("/api/login", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ password: $("gate-password").value }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      $("gate-error").textContent = data.error || "Incorrect password.";
+      return;
+    }
+    storeSession(data.token, data.expiresAt);
+    showApp();
+  } catch (err) {
+    $("gate-error").textContent = "Could not reach the server. Try again.";
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+if (hasValidLocalSession()) showApp(); else showGate();
+
+// ---------------------------------------------------------------------------
+// Helpers
+
+function esc(s) {
+  return String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+function safeUrl(u) {
+  try {
+    const parsed = new URL(u, window.location.href);
+    return parsed.protocol === "http:" || parsed.protocol === "https:" ? parsed.href : "#";
+  } catch { return "#"; }
+}
+function cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
+function money(n, currency) {
+  if (n === null || n === undefined || n === "") return "—";
+  const num = Number(n);
+  if (Number.isNaN(num)) return "—";
+  return "$" + Math.round(num).toLocaleString("en-US") + (currency ? " " + currency : "");
+}
+function aiDate(d) {
+  if (!d) return "—";
+  return `<span class="ai-date" title="AI-suggested — confirm before use.">${esc(d)}</span>`;
+}
+function pill(text, cls) { return `<span class="pill ${cls || "pill-neutral"}">${esc(text)}</span>`; }
+function sevPill(v) {
+  const s = String(v || "").toLowerCase();
+  if (s === "critical" || s === "high") return pill(cap(v), "pill-critical");
+  if (s === "medium") return pill(cap(v), "pill-warn");
+  if (s === "low") return pill(cap(v), "pill-good");
+  return pill(v || "—", "pill-neutral");
+}
+function statusPill(s) {
+  const v = String(s || "").toLowerCase();
+  if (v === "mitigated" || v === "complete" || v === "closed") return pill(s, "pill-good");
+  if (v === "in progress") return pill(s, "pill-warn");
+  return pill(s || "—", "pill-neutral");
+}
+function ragPill(r) {
+  return r === "warn" ? pill("Amber", "pill-warn") : pill("Green", "pill-good");
+}
+
+// ---------------------------------------------------------------------------
+// Provenance badge — the demo's centerpiece. FINDINGS_BY_ID is set fresh per
+// render so click-through resolves against the artifact currently on screen.
+
+let FINDINGS_BY_ID = {};
+let PROV_COUNTER = 0;
+let LOW_CONF_QUEUE = [];
+
+function linkifyFindings(text) {
+  if (!text) return "";
+  return esc(text).replace(/\bF(\d+)\b/g, (m) => {
+    const f = FINDINGS_BY_ID[m];
+    if (!f) return m;
+    return `<a href="${esc(safeUrl(f.url))}" target="_blank" rel="noopener noreferrer">${m} — ${esc(f.title)}</a>`;
+  });
+}
+
+function provenanceBadge(p, opts) {
+  if (!p) return "";
+  PROV_COUNTER += 1;
+  const id = "prov-" + PROV_COUNTER;
+  const conf = String(p.confidence || "low").toLowerCase();
+  const basisText = Array.isArray(p.basis) ? p.basis.join(" + ") : String(p.basis || "inference");
+
+  if (conf === "low" && opts && opts.queueLabel) {
+    LOW_CONF_QUEUE.push({ tabKey: opts.tabKey, domId: opts.domId, label: opts.queueLabel });
+  }
+
+  return `<span class="prov-wrap">
+    <button type="button" class="prov-badge conf-${esc(conf)}" data-pop="${id}">${esc(cap(conf))}</button>
+    <div class="prov-pop" id="${id}">
+      <div class="pp-basis">${esc(basisText)}</div>
+      <div>${linkifyFindings(p.detail || "")}</div>
+    </div>
+  </span>`;
+}
+
+// ---------------------------------------------------------------------------
+// Form wiring
+
+function renderCheckGroup(containerId, name, items, valueOf, labelOf) {
+  const el = $(containerId);
+  el.innerHTML = items
+    .map((item, i) => {
+      const value = valueOf(item);
+      const label = labelOf(item);
+      const id = `${name}-${i}`;
+      return `<label class="check-item"><input type="checkbox" id="${id}" name="${name}" value="${esc(value)}" /> ${esc(label)}</label>`;
+    })
+    .join("");
+}
+
+function setChecked(name, values) {
+  const set = new Set(values || []);
+  document.querySelectorAll(`input[name="${name}"]`).forEach((el) => { el.checked = set.has(el.value); });
+}
+function getChecked(name) {
+  return Array.from(document.querySelectorAll(`input[name="${name}"]:checked`)).map((el) => el.value);
+}
 
 function populateSampleSelect() {
   const sel = $("sample-select");
@@ -147,15 +249,19 @@ function populateSampleSelect() {
 function applySample(key) {
   if (key === "__custom__") return;
   const intake = SAMPLES[key].intake;
-  $("f-name").value = intake.name;
-  $("f-type").value = intake.type;
-  $("f-client").value = intake.client;
-  $("f-industry").value = intake.industry;
-  $("f-sponsor").value = intake.sponsor;
-  $("f-duration").value = intake.duration;
-  $("f-budget").value = intake.budget;
-  $("f-objective").value = intake.objective;
-  $("f-dod").value = intake.dod;
+  $("f-name").value = intake.name || "";
+  $("f-type").value = intake.type || "";
+  $("f-description").value = intake.description || "";
+  $("f-client").value = intake.client || "";
+  $("f-industry").value = intake.industry || "";
+  $("f-sponsor").value = intake.sponsor || "";
+  $("f-budget").value = intake.budget || "";
+  $("f-start-date").value = intake.startDate || "";
+  $("f-end-date").value = intake.targetEndDate || "";
+  $("f-currency").value = intake.currency || "USD";
+  $("f-vendor-status").value = intake.vendorStatus || "none";
+  $("f-objective").value = intake.objective || "";
+  $("f-dod").value = intake.dod || "";
   $("f-team-capacity").value = intake.teamCapacity || "";
   $("f-decision-makers").value = intake.decisionMakers || "";
   $("f-influencers").value = intake.influencers || "";
@@ -163,17 +269,24 @@ function applySample(key) {
   $("f-supporters").value = intake.supporters || "";
   $("f-constraints").value = intake.constraints || "";
   $("f-anything-else").value = intake.anythingElse || "";
+  setChecked("jurisdiction", intake.jurisdictions);
+  setChecked("compliance", intake.complianceFlags);
 }
 
 function readIntake() {
   return {
     name: $("f-name").value,
     type: $("f-type").value,
+    description: $("f-description").value,
     client: $("f-client").value,
     industry: $("f-industry").value,
     sponsor: $("f-sponsor").value,
-    duration: $("f-duration").value,
-    budget: $("f-budget").value,
+    startDate: $("f-start-date").value,
+    targetEndDate: $("f-end-date").value,
+    currency: $("f-currency").value,
+    jurisdictions: getChecked("jurisdiction"),
+    vendorStatus: $("f-vendor-status").value,
+    budget: $("f-budget").value ? Number($("f-budget").value) : null,
     objective: $("f-objective").value,
     dod: $("f-dod").value,
     teamCapacity: $("f-team-capacity").value,
@@ -183,165 +296,377 @@ function readIntake() {
     supporters: $("f-supporters").value,
     constraints: $("f-constraints").value,
     anythingElse: $("f-anything-else").value,
+    complianceFlags: getChecked("compliance"),
   };
 }
 
-function pill(text, cls) {
-  return `<span class="pill ${cls || "pill-neutral"}">${text}</span>`;
-}
-function sevPill(v) {
-  const s = String(v || "").toLowerCase();
-  if (s === "critical") return pill(v, "pill-critical");
-  if (s === "high" || s === "warn") return pill(v, "pill-warn");
-  if (s === "low" || s === "good" || s === "mitigated") return pill(v, "pill-good");
-  return pill(v, "pill-neutral");
-}
-function money(n) {
-  const num = Number(n);
-  return isNaN(num) ? "—" : "$" + Math.round(num).toLocaleString("en-US");
-}
+// ---------------------------------------------------------------------------
+// Tab rendering
 
-function renderArtifactSet(a) {
-  if (!a) return '<p class="muted">No data.</p>';
-  const phasesHtml = (a.phases || [])
-    .map((p) => `<tr><td>${p.id}</td><td>${p.name}</td><td>${p.window}</td></tr>`)
-    .join("");
-  const tasksHtml = (a.tasks || [])
-    .map(
-      (t) =>
-        `<tr><td>${t.id}</td><td>${t.task}</td><td>${t.workstream}</td><td>${sevPill(t.priority)}</td><td>${t.startDate} → ${t.endDate}</td><td>${t.owner}</td><td>${pill(t.status)}</td></tr>`
-    )
-    .join("");
-  const risksHtml = (a.risks || [])
-    .map(
-      (r) =>
-        `<tr><td>${r.id}</td><td>${r.category}</td><td>${r.desc}</td><td>${sevPill(r.severity)}</td><td>${sevPill(r.likelihood)}</td><td>${r.mitigation}</td><td>${sevPill(r.status)}</td><td class="muted">${r.sourceNote || "—"}</td></tr>`
-    )
-    .join("");
-  const stakeGroups = ["decision", "influence", "block", "support"]
-    .map((k) => {
-      const rows = ((a.stakeholders && a.stakeholders[k]) || [])
-        .map((s) => `<tr><td>${s.name}</td><td>${s.note}</td></tr>`)
-        .join("");
-      if (!rows) return "";
-      return `<h4 style="text-transform:capitalize;">${k}</h4><table><tbody>${rows}</tbody></table>`;
-    })
-    .join("");
-  const budgetHtml = (a.budgetLines || [])
-    .map((b) => `<tr><td>${b.category}</td><td>${money(b.planned)}</td><td>${money(b.actual)}</td></tr>`)
-    .join("");
+const TAB_DEFS = [
+  { key: "overview", label: "Overview" },
+  { key: "plan", label: "Project Plan" },
+  { key: "risks", label: "Risk Register" },
+  { key: "assumptions", label: "Assumptions" },
+  { key: "milestones", label: "Milestones" },
+  { key: "stakeholders", label: "Stakeholders" },
+  { key: "dependencies", label: "Dependencies" },
+  { key: "budget", label: "Budget" },
+  { key: "research", label: "Research" },
+];
 
+function renderOverviewTab(a) {
   return `
-    <h3>Phases</h3>
-    <table><thead><tr><th>ID</th><th>Name</th><th>Window</th></tr></thead><tbody>${phasesHtml}</tbody></table>
-    <h3>Tasks</h3>
-    <table><thead><tr><th>ID</th><th>Task</th><th>Workstream</th><th>Priority</th><th>Dates</th><th>Owner</th><th>Status</th></tr></thead><tbody>${tasksHtml}</tbody></table>
-    <h3>Risks</h3>
-    <table><thead><tr><th>ID</th><th>Category</th><th>Description</th><th>Sev</th><th>Likelihood</th><th>Mitigation</th><th>Status</th><th>Grounded In</th></tr></thead><tbody>${risksHtml}</tbody></table>
-    <h3>Stakeholders</h3>
-    ${stakeGroups}
-    <h3>Budget</h3>
-    <table><thead><tr><th>Category</th><th>Planned</th><th>Actual</th></tr></thead><tbody>${budgetHtml}</tbody></table>
+    <div class="detail-grid">
+      <div><div class="dg-label">Scale tier</div>Tier ${esc(a.scaleTier)} — ${esc(a.scaleTierRationale || "")}</div>
+      <div><div class="dg-label">RAG</div>${ragPill(a.rag)} <span class="muted">${esc(a.ragReason || "")}</span></div>
+      <div><div class="dg-label">ID prefix</div>${esc(a.idPrefix || "—")}</div>
+      <div><div class="dg-label">Client</div>${esc(a.client || "—")}</div>
+      <div><div class="dg-label">Industry / LOB</div>${esc(a.industry || "—")}</div>
+      <div><div class="dg-label">Sponsor</div>${esc(a.sponsor || "—")}</div>
+      <div><div class="dg-label">Duration</div>${esc(a.duration || "—")}</div>
+      <div><div class="dg-label">Budget</div>${money(a.budget, a.currency)}</div>
+    </div>
+    <h3>Objective</h3><p>${esc(a.objective || "—")}</p>
+    <h3>Definition of Done</h3><p>${esc(a.dod || "—")}</p>
   `;
 }
 
-function renderResults() {
-  const body = $("results-body");
-  if (!lastResult) return;
-  if (currentView === "claude") {
-    body.className = "results-body";
-    body.innerHTML = renderArtifactSet(lastResult.claude);
-  } else if (currentView === "mockup") {
-    body.className = "results-body";
-    body.innerHTML = renderArtifactSet(lastResult.mockup);
-  } else {
-    body.className = "results-body side";
-    body.innerHTML = `
-      <div class="results-col"><h4>Claude (real generation)</h4>${renderArtifactSet(lastResult.claude)}</div>
-      <div class="results-col"><h4>Mockup (existing templated output)</h4>${renderArtifactSet(lastResult.mockup)}</div>
-    `;
-  }
+function renderPlanTab(a) {
+  const phaseRows = (a.phases || []).map((p) => {
+    const domId = `phase-${p.id}`;
+    return `<tr id="${domId}"><td>${esc(p.id)}</td><td>${esc(p.name)}</td><td>${esc(p.window)}</td>
+      <td>${aiDate(p.startDate)} – ${aiDate(p.endDate)}</td><td>${esc(p.objective || "")}</td>
+      <td>${provenanceBadge(p.provenance, { tabKey: "plan", domId, queueLabel: `Phase ${p.id} — ${p.name}` })}</td></tr>`;
+  }).join("");
+
+  const wsList = (a.workstreams || []).map((w) => `<span class="pill pill-navy">${esc(w)}</span>`).join(" ");
+
+  const taskRows = (a.tasks || []).map((t) => {
+    const domId = `task-${t.key}`;
+    return `<tr id="${domId}"><td>${esc(t.id)}</td><td>${esc(t.task)}</td><td>${esc(t.phase)}</td><td>${esc(t.workstream)}</td>
+      <td>${sevPill(t.priority)}</td><td>${aiDate(t.startDate)} → ${aiDate(t.endDate)}</td>
+      <td>${esc(t.ownerRole || t.owner)}</td><td>${statusPill(t.status)}</td>
+      <td>${provenanceBadge(t.provenance, { tabKey: "plan", domId, queueLabel: `Task ${t.id} — ${t.task}` })}</td></tr>`;
+  }).join("");
+
+  return `
+    <h3>Phases</h3>
+    <table><thead><tr><th>ID</th><th>Name</th><th>Window</th><th>Dates</th><th>Objective</th><th>Provenance</th></tr></thead>
+    <tbody>${phaseRows || `<tr><td colspan="6" class="muted">No phases generated.</td></tr>`}</tbody></table>
+    <h3>Workstreams</h3>
+    <p>${wsList || '<span class="muted">None generated.</span>'}</p>
+    <h3>Tasks <span class="muted">(${(a.tasks || []).length})</span></h3>
+    <table><thead><tr><th>ID</th><th>Task</th><th>Phase</th><th>Workstream</th><th>Priority</th><th>Dates</th><th>Owner Role</th><th>Status</th><th>Provenance</th></tr></thead>
+    <tbody>${taskRows || `<tr><td colspan="9" class="muted">No tasks generated.</td></tr>`}</tbody></table>
+  `;
 }
 
-function renderResearchBox(researchSummary, searchQueries) {
-  const section = $("research-section");
-  if (!researchSummary && !(searchQueries && searchQueries.length)) {
-    section.style.display = "none";
+function renderRisksTab(a) {
+  const rows = (a.risks || []).map((r, i) => {
+    const detailId = `risk-detail-${i}`;
+    const domId = `risk-${r.id}`;
+    const summary = `<tr class="clickable" id="${domId}" data-toggle="${detailId}">
+      <td>${esc(r.id)}</td><td>${esc(r.category)}</td><td>${esc(r.desc)}</td>
+      <td>${sevPill(r.inherentSeverity || r.severity)}<span class="arrow-sep">→</span>${sevPill(r.residualSeverity)}</td>
+      <td><span class="pill pill-navy">${esc(cap(r.responseStrategy))}</span></td>
+      <td>${statusPill(r.status)}</td>
+      <td>${provenanceBadge(r.provenance, { tabKey: "risks", domId, queueLabel: `Risk ${r.id} — ${r.desc.slice(0, 60)}` })}</td>
+    </tr>`;
+    const detail = `<tr class="detail-row" id="${detailId}"><td colspan="7">
+      <div class="detail-grid">
+        <div><div class="dg-label">Mitigation</div>${esc(r.mitigation || "—")}</div>
+        <div><div class="dg-label">Mitigation owner / target</div>${esc(r.mitigationOwnerRole || "—")} · ${aiDate(r.mitigationTargetDate)}</div>
+        <div><div class="dg-label">Trigger</div>${esc(r.trigger || "—")}</div>
+        <div><div class="dg-label">Inherent likelihood → residual</div>${sevPill(r.inherentLikelihood || r.likelihood)} <span class="arrow-sep">→</span> ${sevPill(r.residualLikelihood)}</div>
+        <div><div class="dg-label">Source</div>${esc(r.source)} — ${esc(r.sourceLabel || "")}</div>
+      </div>
+    </td></tr>`;
+    return summary + detail;
+  }).join("");
+
+  return `
+    <table><thead><tr><th>ID</th><th>Category</th><th>Description</th><th>Inherent → Residual</th><th>Response</th><th>Status</th><th>Provenance</th></tr></thead>
+    <tbody>${rows || `<tr><td colspan="7" class="muted">No risks generated.</td></tr>`}</tbody></table>
+    <p class="muted">Click a row to expand mitigation, trigger, and source detail.</p>
+  `;
+}
+
+function renderAssumptionsTab(a) {
+  const rows = (a.assumptions || []).map((x) => {
+    const domId = `assumption-${x.id}`;
+    return `<tr id="${domId}"><td>${esc(x.id)}</td><td>${esc(x.statement)}</td><td>${esc(x.riskIfWrong)}</td>
+      <td>${esc(x.ownerRole)}</td><td>${aiDate(x.validateBy)}</td>
+      <td>${provenanceBadge(x.provenance, { tabKey: "assumptions", domId, queueLabel: `Assumption ${x.id}` })}</td></tr>`;
+  }).join("");
+  return `<table><thead><tr><th>ID</th><th>Statement</th><th>Risk if wrong</th><th>Owner role</th><th>Validate by</th><th>Provenance</th></tr></thead>
+    <tbody>${rows || `<tr><td colspan="6" class="muted">No assumptions generated.</td></tr>`}</tbody></table>`;
+}
+
+function renderMilestonesTab(a) {
+  const rows = (a.milestones || []).map((m) => {
+    const domId = `milestone-${m.id}`;
+    return `<tr id="${domId}"><td>${esc(m.id)}</td><td>${esc(m.name)}</td><td>${aiDate(m.targetDate)}</td>
+      <td>${esc(m.phaseId)}</td><td>${esc(m.significance)}</td><td>${statusPill(m.status)}</td>
+      <td>${provenanceBadge(m.provenance, { tabKey: "milestones", domId, queueLabel: `Milestone ${m.name}` })}</td></tr>`;
+  }).join("");
+  return `<table><thead><tr><th>ID</th><th>Name</th><th>Target</th><th>Phase</th><th>Significance</th><th>Status</th><th>Provenance</th></tr></thead>
+    <tbody>${rows || `<tr><td colspan="7" class="muted">No milestones generated.</td></tr>`}</tbody></table>`;
+}
+
+function renderStakeholdersTab(a) {
+  const groups = [
+    ["decision", "Decision"], ["influence", "Influence"], ["block", "Block (veto holders)"],
+    ["support", "Support"], ["beneficiary", "Beneficiary"],
+  ];
+  return groups.map(([key, label], gi) => {
+    const rows = ((a.stakeholders && a.stakeholders[key]) || []).map((s, i) => {
+      const domId = `stake-${key}-${i}`;
+      return `<tr id="${domId}"><td>${esc(s.name || "(unnamed)")}</td><td>${esc(s.role || "")}</td><td>${esc(s.note || "")}</td>
+        <td>${provenanceBadge(s.provenance, { tabKey: "stakeholders", domId, queueLabel: `${label} stakeholder — ${s.name || s.role || ""}` })}</td></tr>`;
+    }).join("");
+    return `<h3>${esc(label)}</h3><table><thead><tr><th>Name</th><th>Role</th><th>Note</th><th>Provenance</th></tr></thead>
+      <tbody>${rows || `<tr><td colspan="4" class="muted">None generated.</td></tr>`}</tbody></table>`;
+  }).join("");
+}
+
+function renderDependenciesTab(a) {
+  const rows = (a.dependencies || []).map((d, i) => {
+    const domId = `dep-${i}`;
+    return `<tr id="${domId}"><td>${esc(d.from)}</td><td>${esc(d.to)}</td><td>${esc(d.type)}</td>
+      <td>${d.lagDays || 0}d</td><td>${d.critical ? pill("Critical path", "pill-critical") : ""}</td>
+      <td>${esc(d.note || "")}</td>
+      <td>${provenanceBadge(d.provenance, { tabKey: "dependencies", domId, queueLabel: `Dependency ${d.from} → ${d.to}` })}</td></tr>`;
+  }).join("");
+  return `<table><thead><tr><th>From</th><th>To</th><th>Type</th><th>Lag</th><th></th><th>Note</th><th>Provenance</th></tr></thead>
+    <tbody>${rows || `<tr><td colspan="7" class="muted">No dependencies generated.</td></tr>`}</tbody></table>`;
+}
+
+function renderBudgetTab(a) {
+  const rows = (a.budgetLines || []).map((b) => {
+    const domId = `budget-${b.id}`;
+    return `<tr id="${domId}"><td>${esc(b.category)}</td><td>${money(b.planned, a.currency)}</td>
+      <td>${money(b.actual, a.currency)}</td><td>${esc(b.costType)}</td>
+      <td>${provenanceBadge(b.provenance, { tabKey: "budget", domId, queueLabel: `Budget line — ${b.category}` })}</td></tr>`;
+  }).join("");
+  const total = (a.budgetLines || []).reduce((sum, b) => sum + (Number(b.planned) || 0), 0);
+  return `<table><thead><tr><th>Category</th><th>Planned</th><th>Actual</th><th>Type</th><th>Provenance</th></tr></thead>
+    <tbody>${rows || `<tr><td colspan="5" class="muted">No budget lines generated.</td></tr>`}</tbody></table>
+    <p class="muted">Sum of planned lines: ${money(total, a.currency)}${a.budget ? ` (stated total: ${money(a.budget, a.currency)})` : ""}</p>`;
+}
+
+function renderResearchTab(payload) {
+  const chips = (payload.searchQueriesExecuted || []).map((q) => `<span class="query-chip">${esc(q)}</span>`).join("");
+  const findingRows = (payload.researchFindings || []).map((f) => `
+    <div class="finding-row">
+      <span class="finding-id">${esc(f.id)}</span>
+      <a href="${esc(safeUrl(f.url))}" target="_blank" rel="noopener noreferrer">${esc(f.title)}</a>
+      <span class="muted">${esc(f.publishedDate || "")}</span>
+    </div>`).join("");
+  return `
+    <p class="muted">Nothing confidential left the perimeter: only generalized attributes (type, industry, jurisdiction, scale, vendor status, compliance flags) were used to compose search queries — never client, project, sponsor, or description text.</p>
+    <h3>Search queries executed (${(payload.searchQueriesExecuted || []).length})</h3>
+    <div class="query-chips">${chips || '<span class="muted">None.</span>'}</div>
+    <h3>Findings cited (${(payload.researchFindings || []).length})</h3>
+    ${findingRows || '<p class="muted">No findings were captured.</p>'}
+    <h3>Research summary</h3>
+    <p style="white-space:pre-wrap;">${esc(payload.researchSummary || "—")}</p>
+  `;
+}
+
+function renderFeasibilityPanel(flags) {
+  if (!flags || !flags.length) return "";
+  const rows = flags.map((f) => `
+    <div class="flag-row">
+      <div class="flag-head"><span class="flag-area">${esc(f.area)}</span>${sevPill(f.severity)}</div>
+      <div class="flag-obs">${esc(f.observation)}</div>
+      <div class="flag-bench">${esc(f.benchmark)}${f.provenanceRef && FINDINGS_BY_ID[f.provenanceRef] ? ` — <a href="${esc(safeUrl(FINDINGS_BY_ID[f.provenanceRef].url))}" target="_blank" rel="noopener noreferrer">${esc(f.provenanceRef)}</a>` : ""}</div>
+    </div>`).join("");
+  return `<div class="card"><h3 class="eyebrow">Feasibility flags (${flags.length})</h3>${rows}</div>`;
+}
+
+function renderLowConfidenceQueue() {
+  if (!LOW_CONF_QUEUE.length) return "";
+  const rows = LOW_CONF_QUEUE.map((q) => `
+    <div class="queue-row"><a href="#" data-jump-tab="${esc(q.tabKey)}" data-jump-id="${esc(q.domId)}">${esc(q.label)}</a></div>
+  `).join("");
+  return `<div class="card"><h3 class="eyebrow">${LOW_CONF_QUEUE.length} item${LOW_CONF_QUEUE.length === 1 ? "" : "s"} need your attention first</h3>
+    <details><summary class="muted" style="cursor:pointer;">Show low-confidence items</summary>${rows}</details></div>`;
+}
+
+function renderResults(payload) {
+  const a = payload.artifact;
+  FINDINGS_BY_ID = {};
+  (payload.researchFindings || []).forEach((f) => { FINDINGS_BY_ID[f.id] = f; });
+  LOW_CONF_QUEUE = [];
+  PROV_COUNTER = 0;
+
+  const meta = payload.meta || {};
+  $("meta-line").innerHTML = `Model: ${esc(meta.modelId || "—")} ·
+    Tokens in/out: ${meta.tokensIn ?? "—"}/${meta.tokensOut ?? "—"} ·
+    Est. cost: $${(meta.estimatedCost || 0).toFixed(3)} ·
+    Duration: ${((meta.durationMs || 0) / 1000).toFixed(1)}s` +
+    (payload.validationWarnings && payload.validationWarnings.length
+      ? ` <details style="display:inline"><summary style="display:inline;cursor:pointer;color:var(--warn);">${payload.validationWarnings.length} validation warning(s)</summary><ul>${payload.validationWarnings.map((w) => `<li>${esc(w)}</li>`).join("")}</ul></details>`
+      : "");
+
+  // Tab panels reference LOW_CONF_QUEUE/provenance counters as they render,
+  // so build all panel bodies BEFORE the feasibility/queue summary cards.
+  const panels = {
+    overview: renderOverviewTab(a),
+    plan: renderPlanTab(a),
+    risks: renderRisksTab(a),
+    assumptions: renderAssumptionsTab(a),
+    milestones: renderMilestonesTab(a),
+    stakeholders: renderStakeholdersTab(a),
+    dependencies: renderDependenciesTab(a),
+    budget: renderBudgetTab(a),
+    research: renderResearchTab(payload),
+  };
+
+  const tabBar = TAB_DEFS.map((t, i) => `<button type="button" class="tab-btn${i === 0 ? " active" : ""}" data-tab="${t.key}">${esc(t.label)}</button>`).join("");
+  const tabPanels = TAB_DEFS.map((t, i) => `<div class="tab-panel${i === 0 ? " active" : ""}" id="tab-${t.key}">${panels[t.key]}</div>`).join("");
+
+  const html = `
+    <div class="banner banner-warn">All dates are suggestions. Confirm or adjust before this plan is used for commitments.</div>
+    ${renderFeasibilityPanel(a.feasibilityFlags)}
+    ${renderLowConfidenceQueue()}
+    <div class="tab-bar">${tabBar}</div>
+    ${tabPanels}
+  `;
+  $("results-body").innerHTML = html;
+}
+
+// ---------------------------------------------------------------------------
+// Interactivity (event delegation — content above is rebuilt wholesale per
+// generation, so listeners are attached once here rather than per element)
+
+document.addEventListener("click", (e) => {
+  const tabBtn = e.target.closest(".tab-btn");
+  if (tabBtn) { setActiveTab(tabBtn.dataset.tab); return; }
+
+  const provBtn = e.target.closest(".prov-badge");
+  if (provBtn) {
+    e.stopPropagation();
+    const pop = document.getElementById(provBtn.dataset.pop);
+    const wasOpen = pop && pop.classList.contains("open");
+    document.querySelectorAll(".prov-pop.open").forEach((p) => p.classList.remove("open"));
+    if (pop && !wasOpen) pop.classList.add("open");
     return;
   }
-  section.style.display = "block";
-  const chipsEl = $("research-queries");
-  chipsEl.innerHTML = (searchQueries || [])
-    .map((q) => `<span class="query-chip">${q}</span>`)
-    .join("");
-  $("research-summary").textContent = researchSummary || "(No summary text — search was run but the model produced no written findings.)";
+
+  const jumpEl = e.target.closest("[data-jump-tab]");
+  if (jumpEl) {
+    e.preventDefault();
+    setActiveTab(jumpEl.dataset.jumpTab);
+    const target = document.getElementById(jumpEl.dataset.jumpId);
+    if (target) target.scrollIntoView({ behavior: "smooth", block: "center" });
+    return;
+  }
+
+  const toggleRow = e.target.closest("tr.clickable");
+  if (toggleRow) {
+    const detail = document.getElementById(toggleRow.dataset.toggle);
+    if (detail) detail.classList.toggle("open");
+    return;
+  }
+
+  document.querySelectorAll(".prov-pop.open").forEach((p) => p.classList.remove("open"));
+});
+
+function setActiveTab(key) {
+  document.querySelectorAll(".tab-btn").forEach((b) => b.classList.toggle("active", b.dataset.tab === key));
+  document.querySelectorAll(".tab-panel").forEach((p) => p.classList.toggle("active", p.id === "tab-" + key));
 }
+
+// ---------------------------------------------------------------------------
+// Generate flow
+
+const LOADING_STAGES = [
+  "Researching regulatory and market context…",
+  "Drafting artifacts…",
+  "Checking consistency…",
+];
 
 async function generate() {
   const btn = $("generate-btn");
   const statusLine = $("status-line");
-  btn.disabled = true;
-  statusLine.textContent = "Researching, then generating… (two model calls, can take 15–30s)";
-  $("results-card").style.display = "none";
-  $("research-section").style.display = "none";
+  statusLine.classList.remove("err");
 
-  const sampleKey = $("sample-select").value;
+  if (!$("f-start-date").value || !$("f-end-date").value) {
+    statusLine.classList.add("err");
+    statusLine.textContent = "Start date and target end date are required.";
+    return;
+  }
+  if (!getChecked("jurisdiction").length) {
+    statusLine.classList.add("err");
+    statusLine.textContent = "Select at least one jurisdiction.";
+    return;
+  }
+
+  btn.disabled = true;
+  $("results-card").style.display = "none";
+
+  let stage = 0;
+  statusLine.textContent = LOADING_STAGES[0];
+  const stageTimer = setInterval(() => {
+    stage = Math.min(stage + 1, LOADING_STAGES.length - 1);
+    statusLine.textContent = LOADING_STAGES[stage];
+  }, 6000);
+
   const intake = readIntake();
   const model = $("model-select").value;
-  const password = $("f-password").value;
+  const token = sessionStorage.getItem(SESSION_KEY);
 
   try {
     const res = await fetch("/api/generate", {
       method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ intake, model, password }),
+      headers: {
+        "content-type": "application/json",
+        ...(token ? { authorization: "Bearer " + token } : {}),
+      },
+      body: JSON.stringify({ intake, model }),
     });
+
+    if (res.status === 401) {
+      clearSession();
+      showGate("Session expired or invalid. Please log in again.");
+      return;
+    }
+
     const data = await res.json();
 
-    // Refusals return HTTP 200 with an `error` field (research step or
-    // generation step declined) rather than a network/server failure —
-    // check for it before assuming success just because res.ok is true.
     if (!res.ok || data.error) {
       $("results-card").style.display = "block";
-      renderResearchBox(data.researchSummary, data.searchQueries);
       $("meta-line").textContent = "";
-      $("results-body").className = "results-body";
       const detail = data.stopDetails ? ` (category: ${data.stopDetails.category || "unspecified"})` : data.detail ? " — " + JSON.stringify(data.detail).slice(0, 300) : "";
-      $("results-body").innerHTML = `<div class="err-box research-error">${data.error}${detail}</div>`;
+      $("results-body").innerHTML = `<div class="err-box">${esc(data.error)}${esc(detail)}</div>`;
       statusLine.textContent = "";
       return;
     }
 
-    lastResult = {
-      claude: data.artifacts,
-      mockup: sampleKey !== "__custom__" ? SAMPLES[sampleKey].mockupOutput : null,
-    };
-    $("meta-line").textContent = `Model: ${data.model} · Latency: ${(data.latencyMs / 1000).toFixed(1)}s` +
-      (data.usage ? ` · Input tokens: ${data.usage.input_tokens} · Output tokens: ${data.usage.output_tokens}` : "");
-    renderResearchBox(data.researchSummary, data.searchQueries);
+    renderResults(data);
     $("results-card").style.display = "block";
-    renderResults();
-    statusLine.textContent = "";
+    statusLine.textContent = "Done.";
   } catch (err) {
     $("results-card").style.display = "block";
     $("meta-line").textContent = "";
-    $("results-body").className = "results-body";
-    $("results-body").innerHTML = `<div class="err-box">${err.message}</div>`;
-    statusLine.textContent = "";
+    $("results-body").innerHTML = `<div class="err-box">${esc(err.message)}</div>`;
+    statusLine.classList.add("err");
+    statusLine.textContent = "Request failed.";
   } finally {
+    clearInterval(stageTimer);
     btn.disabled = false;
   }
 }
 
-populateSampleSelect();
-applySample($("sample-select").value);
-$("sample-select").addEventListener("change", (e) => applySample(e.target.value));
-$("generate-btn").addEventListener("click", generate);
-document.querySelectorAll(".toggle-btn").forEach((btn) => {
-  btn.addEventListener("click", () => {
-    document.querySelectorAll(".toggle-btn").forEach((b) => b.classList.remove("active"));
-    btn.classList.add("active");
-    currentView = btn.dataset.view;
-    renderResults();
-  });
-});
+// ---------------------------------------------------------------------------
+
+function initApp() {
+  renderCheckGroup("jurisdiction-checks", "jurisdiction", JURISDICTIONS, (x) => x, (x) => x);
+  renderCheckGroup("compliance-checks", "compliance", COMPLIANCE_FLAGS, (x) => x.value, (x) => x.label);
+  populateSampleSelect();
+  applySample($("sample-select").value);
+  $("sample-select").addEventListener("change", (e) => applySample(e.target.value));
+  $("generate-btn").addEventListener("click", generate);
+}
