@@ -634,7 +634,21 @@ async function generate() {
       return;
     }
 
-    const data = await res.json();
+    const rawText = await res.text();
+    let data;
+    try {
+      data = JSON.parse(rawText);
+    } catch (parseErr) {
+      // The server didn't return JSON at all (crashed process, platform
+      // timeout page, proxy error, etc). Show the raw body instead of a
+      // cryptic parse-error message so the actual cause is visible.
+      console.error("Non-JSON response from /api/generate:", res.status, rawText);
+      $("results-card").style.display = "block";
+      $("meta-line").textContent = "";
+      $("results-body").innerHTML = `<div class="err-box">Server returned a non-JSON response (HTTP ${res.status}). This usually means the function crashed or was killed by a platform timeout before it could finish.<br><br><strong>Raw response${rawText ? " (first 800 chars)" : ""}:</strong><pre style="white-space:pre-wrap;">${esc(rawText ? rawText.slice(0, 800) : "(empty body)")}</pre></div>`;
+      statusLine.textContent = "";
+      return;
+    }
 
     if (!res.ok || data.error) {
       $("results-card").style.display = "block";
@@ -649,9 +663,10 @@ async function generate() {
     $("results-card").style.display = "block";
     statusLine.textContent = "Done.";
   } catch (err) {
+    console.error("generate() failed:", err);
     $("results-card").style.display = "block";
     $("meta-line").textContent = "";
-    $("results-body").innerHTML = `<div class="err-box">${esc(err.message)}</div>`;
+    $("results-body").innerHTML = `<div class="err-box">${esc(err.name || "Error")}: ${esc(err.message)}</div>`;
     statusLine.classList.add("err");
     statusLine.textContent = "Request failed.";
   } finally {
