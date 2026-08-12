@@ -110,9 +110,12 @@ hard-caps every function at 10s with no override at all. Plain Pro allows up
 to 60s, which still isn't enough here. Enable **Fluid Compute** on the
 project (Settings → Functions) — usage-based pricing for the extra duration,
 on top of the Pro subscription — which unlocks `maxDuration` up to 800s.
-`vercel.json` sets `api/generate.js`'s `maxDuration` to 300s, generous
-headroom without leaving a stuck request hanging for 13 minutes if something
-is actually wrong.
+`vercel.json` sets `api/generate.js`'s `maxDuration` to 800s, Fluid
+Compute's max: `MAX_TOKENS_GENERATE` was also raised from 16,000 to 48,000
+(tier 3-4 artifact sets, generated last-field-first per the prompt, were
+being truncated at 16k — tasks specifically were coming back empty), and a
+larger token budget takes longer to generate, so both limits needed to move
+together.
 
 ## Known scope cuts (POC, not production)
 

@@ -38,7 +38,13 @@ const PRICING_PER_TOKEN = {
 };
 
 const SPEND_CAP_USD = Number(process.env.GENERATION_SPEND_CAP_USD || 40);
-const MAX_TOKENS_GENERATE = 16000;
+// 16000 was the brief's starting point and is only really enough for a tier-1
+// project. Tasks are deliberately generated LAST in the prompt (so a reviewer
+// can see quality decay first), which means they're the first thing lost when
+// the model runs out of budget -- exactly what was observed on a tier-3 run
+// (empty tasks[], stop_reason "max_tokens"). 48000 covers tier 4 worst case
+// (~65 tasks + 18 risks + full provenance on everything) with headroom.
+const MAX_TOKENS_GENERATE = 48000;
 const MAX_TOKENS_RESEARCH = 3000;
 const MAX_SEARCHES = 10;
 
