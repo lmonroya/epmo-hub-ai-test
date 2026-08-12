@@ -761,7 +761,6 @@ module.exports = async (req, res) => {
     researchData = await callAnthropic(apiKey, {
       model: chosenModel,
       max_tokens: MAX_TOKENS_RESEARCH,
-      temperature: 0.2,
       system: SYSTEM_PROMPT,
       messages,
       tools: [WEB_SEARCH_TOOL],
@@ -772,7 +771,6 @@ module.exports = async (req, res) => {
       researchData = await callAnthropic(apiKey, {
         model: chosenModel,
         max_tokens: MAX_TOKENS_RESEARCH,
-        temperature: 0.2,
         system: SYSTEM_PROMPT,
         messages,
         tools: [WEB_SEARCH_TOOL],
@@ -819,7 +817,6 @@ module.exports = async (req, res) => {
     finalData = await callAnthropic(apiKey, {
       model: chosenModel,
       max_tokens: MAX_TOKENS_GENERATE,
-      temperature: 0.2,
       system: SYSTEM_PROMPT,
       messages,
       tools: [ARTIFACT_TOOL],
