@@ -494,7 +494,10 @@ function renderLowConfidenceQueue() {
     <details><summary class="muted" style="cursor:pointer;">Show low-confidence items</summary>${rows}</details></div>`;
 }
 
+let lastPayload = null;
+
 function renderResults(payload) {
+  lastPayload = payload;
   const a = payload.artifact;
   FINDINGS_BY_ID = {};
   (payload.researchFindings || []).forEach((f) => { FINDINGS_BY_ID[f.id] = f; });
@@ -676,6 +679,116 @@ async function generate() {
 }
 
 // ---------------------------------------------------------------------------
+// Excel export — client-side only, no server round-trip. One sheet per
+// artifact type so it's usable directly, not a JSON dump.
+
+function provCols(p) {
+  return {
+    Confidence: p ? cap(p.confidence || "") : "",
+    Basis: p && Array.isArray(p.basis) ? p.basis.join(" + ") : "",
+    "Provenance Detail": p ? p.detail || "" : "",
+  };
+}
+
+function autoWidth(rows) {
+  if (!rows.length) return [];
+  return Object.keys(rows[0]).map((k) => {
+    const maxLen = rows.reduce((m, r) => Math.max(m, String(r[k] ?? "").length), k.length);
+    return { wch: Math.min(Math.max(maxLen + 2, 10), 60) };
+  });
+}
+
+function sheetFromRows(wb, name, rows) {
+  const ws = rows.length ? XLSX.utils.json_to_sheet(rows) : XLSX.utils.aoa_to_sheet([["(none generated)"]]);
+  if (rows.length) ws["!cols"] = autoWidth(rows);
+  XLSX.utils.book_append_sheet(wb, ws, name.slice(0, 31)); // Excel sheet-name length cap
+}
+
+function exportToExcel() {
+  if (!lastPayload) return;
+  if (typeof XLSX === "undefined") {
+    alert("The Excel export library failed to load (check your connection) — try again.");
+    return;
+  }
+  const a = lastPayload.artifact;
+  const meta = lastPayload.meta || {};
+  const wb = XLSX.utils.book_new();
+
+  sheetFromRows(wb, "Overview", [{
+    "Project Name": a.name || "", Type: a.type || "", Client: a.client || "",
+    Industry: a.industry || "", Sponsor: a.sponsor || "", "Scale Tier": a.scaleTier ?? "",
+    "Scale Tier Rationale": a.scaleTierRationale || "", RAG: a.rag || "", "RAG Reason": a.ragReason || "",
+    Duration: a.duration || "", Budget: a.budget ?? "", Currency: a.currency || "",
+    Objective: a.objective || "", "Definition of Done": a.dod || "",
+    Model: meta.modelId || "", "Est. Cost (USD)": meta.estimatedCost != null ? meta.estimatedCost.toFixed(3) : "",
+  }]);
+
+  sheetFromRows(wb, "Phases", (a.phases || []).map((p) => ({
+    ID: p.id, Name: p.name, Window: p.window, "Start Date": p.startDate, "End Date": p.endDate,
+    Objective: p.objective || "", ...provCols(p.provenance),
+  })));
+
+  sheetFromRows(wb, "Workstreams", (a.workstreams || []).map((w) => ({ Workstream: w })));
+
+  sheetFromRows(wb, "Tasks", (a.tasks || []).map((t) => ({
+    Key: t.key, ID: t.id, Phase: t.phase, Workstream: t.workstream, Task: t.task,
+    Priority: t.priority, "Start Date": t.startDate, "End Date": t.endDate,
+    "Owner Role": t.ownerRole || t.owner, Status: t.status, ...provCols(t.provenance),
+  })));
+
+  sheetFromRows(wb, "Risks", (a.risks || []).map((r) => ({
+    ID: r.id, Category: r.category, Description: r.desc,
+    "Inherent Severity": r.inherentSeverity || r.severity, "Inherent Likelihood": r.inherentLikelihood || r.likelihood,
+    "Response Strategy": r.responseStrategy, Mitigation: r.mitigation,
+    "Mitigation Owner Role": r.mitigationOwnerRole, "Mitigation Target Date": r.mitigationTargetDate,
+    "Residual Severity": r.residualSeverity, "Residual Likelihood": r.residualLikelihood,
+    Trigger: r.trigger, Status: r.status, Source: r.source, "Source Label": r.sourceLabel,
+    ...provCols(r.provenance),
+  })));
+
+  sheetFromRows(wb, "Assumptions", (a.assumptions || []).map((x) => ({
+    ID: x.id, Statement: x.statement, "Risk If Wrong": x.riskIfWrong,
+    "Owner Role": x.ownerRole, "Validate By": x.validateBy, ...provCols(x.provenance),
+  })));
+
+  sheetFromRows(wb, "Milestones", (a.milestones || []).map((m) => ({
+    ID: m.id, Name: m.name, "Target Date": m.targetDate, Phase: m.phaseId,
+    Significance: m.significance, Status: m.status, ...provCols(m.provenance),
+  })));
+
+  const stakeRows = [];
+  ["decision", "influence", "block", "support", "beneficiary"].forEach((key) => {
+    ((a.stakeholders && a.stakeholders[key]) || []).forEach((s) => {
+      stakeRows.push({ Category: cap(key), Name: s.name || "", Role: s.role || "", Note: s.note || "", ...provCols(s.provenance) });
+    });
+  });
+  sheetFromRows(wb, "Stakeholders", stakeRows);
+
+  sheetFromRows(wb, "Dependencies", (a.dependencies || []).map((d) => ({
+    From: d.from, To: d.to, Type: d.type, "Lag Days": d.lagDays || 0,
+    Critical: d.critical ? "Yes" : "No", Note: d.note || "", ...provCols(d.provenance),
+  })));
+
+  sheetFromRows(wb, "Budget", (a.budgetLines || []).map((b) => ({
+    Category: b.category, Planned: b.planned ?? "", Actual: b.actual ?? "", "Cost Type": b.costType, ...provCols(b.provenance),
+  })));
+
+  sheetFromRows(wb, "Feasibility Flags", (a.feasibilityFlags || []).map((f) => ({
+    Area: f.area, Observation: f.observation, Benchmark: f.benchmark,
+    Severity: f.severity, "Finding Ref": f.provenanceRef || "",
+  })));
+
+  sheetFromRows(wb, "Search Queries", (lastPayload.searchQueriesExecuted || []).map((q) => ({ "Search Query": q })));
+
+  sheetFromRows(wb, "Research Findings", (lastPayload.researchFindings || []).map((f) => ({
+    ID: f.id, Title: f.title, URL: f.url, "Published Date": f.publishedDate || "",
+  })));
+
+  const safeName = (a.idPrefix || a.name || "epmo-draft").toString().replace(/[^a-z0-9]+/gi, "-").toLowerCase().replace(/^-+|-+$/g, "");
+  XLSX.writeFile(wb, `${safeName || "epmo-draft"}-artifacts.xlsx`);
+}
+
+// ---------------------------------------------------------------------------
 
 function initApp() {
   renderCheckGroup("jurisdiction-checks", "jurisdiction", JURISDICTIONS, (x) => x, (x) => x);
@@ -684,4 +797,5 @@ function initApp() {
   applySample($("sample-select").value);
   $("sample-select").addEventListener("change", (e) => applySample(e.target.value));
   $("generate-btn").addEventListener("click", generate);
+  $("export-xlsx-btn").addEventListener("click", exportToExcel);
 }
